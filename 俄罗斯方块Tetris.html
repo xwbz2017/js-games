@@ -1,0 +1,1471 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>地图大作战</title>
+        <script src="jquery-1.8.3.min.js" language="javascript"></script>
+        <script language="javascript">
+		<!--
+            $().ready(function() {
+				/*
+					2015-2-15 22:30
+					@author xwbz
+					v2.0
+				*/
+                var A = 20;		/*	纵长20格 */
+                var B = 10;		/*	横长10格 */
+				var TIM = 500;	/*	下落速度（毫秒） */
+                var H = $(document).height() / A;
+                var W = $(document).width() / B;
+                var N = H > W ? W : H;
+				//------------颜色---------------
+				var C_333 = "#333"; //黑灰色
+				var C_36C = "#36C"; //蓝色
+				var C_69C = "#69C"; //蓝灰色
+				var C_999 = "#999"; //深灰色
+				var C_CCC = "#CCC"; //灰色
+				var C_RED = "red" ; //红色
+				//-----------------------------
+                var x = 0, y = 0, k = 0,zf = 0,aa=0,bb = 0;
+                function ini(x, y)
+                {
+                    $("body").append($("<div class='obj" + x + "_" + y + "'></div>"));
+                    $(".obj" + x + "_" + y).css({"position": "absolute", "height": N + "px", "width": N + "px", "z-index": "1", "left": (y * N) + "px", "top": (x * N) + "px", "background-color":C_333});
+                }
+				//------------Cookie开始----------
+				var c_name = "x55";
+				function getCookie()
+				{
+					if(document.cookie.length>0)
+					{	
+						c_start=document.cookie.indexOf(c_name + "=");
+  						if (c_start!=-1)
+    					{ 
+    						c_start=c_start + c_name.length+1;
+    						c_end=document.cookie.indexOf(";",c_start);
+    						if (c_end==-1) c_end=document.cookie.length;
+    						return unescape(document.cookie.substring(c_start,c_end));
+   	 					} 
+  					}
+					return "0";
+				}
+				function setCookie(val)
+				{
+					var exdate=new Date();
+					exdate.setDate(exdate.getDate()+365);
+					document.cookie=c_name+ "=" +escape(val)+(";expires="+exdate.toGMTString());
+				}
+				zf = new Number(getCookie());
+				//-----------Cookie结束----------
+				$("#bt").append($("<h2>下一个形状</h2>")).append($('<div class="map">map</div>')).append($('<h1>最高得分：'+zf+'<br/>目前得分：0</h1>')).append($('<h3>回车键暂停<br/>空格键变形<br/>←左↓下→右</h3>'));
+                $('h1').css({"color":C_36C,"padding-top":4*N+"px"});
+				$('h3').css({"color":C_69C,"padding-top":N+"px","padding-left":N+"px"});
+                var arr0 = new Array(A);
+                for (var i = 0; i < A; i++)
+                {
+					var temparr = new Array(B);
+                    for (var j = 0; j < B; j++)
+                    {
+                        ini(i, j);
+						temparr[j] = 0;
+                    }
+					arr0[i] = temparr;
+                }
+				//-------------------图形----------
+                var arr1 = new Array();
+                arr1[0] = [[0, 0], [0, 1], [1, 0], [1, 1]];
+                arr1[1] =
+                        [
+                            [[0, 0], [0, 1], [0, 2], [0, 3]],
+                            [[0, 0], [1, 0], [2, 0], [3, 0]]
+                        ];
+                arr1[2] =
+                        [
+                            [
+                                [[0, 0], [0, 1], [0, 2], [1, 0]],
+                                [[0, 0], [0, 1], [1, 1], [2, 1]],
+                                [[1, 0], [1, 1], [1, 2], [0, 2]],
+                                [[0, 0], [1, 0], [2, 0], [2, 1]]
+                            ],
+                            [
+                                [[0, 0], [1, 0], [1, 1], [1, 2]],
+                                [[0, 0], [1, 0], [2, 0], [0, 1]],
+                                [[0, 0], [0, 1], [0, 2], [1, 2]],
+                                [[0, 1], [1, 1], [2, 1], [2, 0]]
+                            ]
+                        ];
+                arr1[3] =
+                        [
+                            [[0, 0], [0, 1], [0, 2], [1, 1]],
+                            [[0, 1], [1, 1], [2, 1], [1, 0]],
+                            [[0, 1], [1, 0], [1, 1], [1, 2]],
+                            [[0, 1], [1, 1], [2, 1], [1, 2]]
+                        ];
+                arr1[4] =
+                        [
+                            [
+                                [[0, 1], [1, 0], [1, 1], [2, 0]],
+                                [[0, 0], [0, 1], [1, 1], [1, 2]]
+                            ],
+                            [
+                                [[0, 0], [1, 0], [1, 1], [2, 1]],
+                                [[0, 1], [0, 2], [1, 1], [1, 0]]
+                            ]
+                        ];
+						//---------------------------------
+				var mapxt = 0, mapr1 = 0, mapr2 = 0;
+				function mapini(x,y)
+				{
+					$(".map").append($("<div class='map" + x + "_" + y + "'></div>"));
+                    $(".map" + x + "_" + y).css({"position": "absolute","z-index":"2", "height": (N/2) + "px", "width": (N/2) + "px", "left": (y * (N/2)+N*2) + "px", "top": (x * (N/2)+N*3) + "px", "background-color":C_RED});
+				}
+				function mapxx()
+				{
+					$(".map").html("");
+					mapxt = (new Date().getMilliseconds())%5;
+					switch(mapxt)
+					{
+						case 0:
+							mapr1 = mapr2 = 0;
+							for (i = 0; i < 4; i++)
+                        	{
+								mapini(arr1[mapxt][i][0],arr1[mapxt][i][1]);
+							}
+						break;
+						case 1:
+							mapr1 = (Math.random() * 1).toFixed(0);
+							for (i = 0; i < 4; i++)
+                        	{
+                            	mapini(arr1[mapxt][mapr1][i][0],arr1[mapxt][mapr1][i][1]);
+							}
+						break;
+						case 2:
+							mapr1 = (Math.random() * 1).toFixed(0);
+                        	mapr2 = (Math.random() * 3).toFixed(0);
+                        	for (i = 0; i < 4; i++)
+                        	{
+                            	mapini(arr1[mapxt][mapr1][mapr2][i][0],arr1[mapxt][mapr1][mapr2][i][1]);
+							}
+						break;
+						case 3:
+							mapr1 = (Math.random() * 3).toFixed(0);
+                        	for (i = 0; i < 4; i++)
+                        	{
+                            	mapini(arr1[mapxt][mapr1][i][0],arr1[mapxt][mapr1][i][1]);
+							}
+						break;
+						case 4:
+							mapr1 = (Math.random() * 1).toFixed(0);
+                        	mapr2 = (Math.random() * 1).toFixed(0);
+                        	for (i = 0; i < 4; i++)
+                        	{
+                            	mapini(arr1[mapxt][mapr1][mapr2][i][0],arr1[mapxt][mapr1][mapr2][i][1]);
+							}
+						break;
+					}
+				}
+                var xt, r1 = 0, r2 = 0,minx = 0, maxx = 0, miny = 0, maxy = 0;
+                //---------------------------------------------
+				function xcreate(){
+                aa = bb = x = y = 0;
+                var k = mapxt;
+                xt = k;
+				switch (k)
+                {
+                    case 0:
+                        for (i = 0; i < arr1[k].length; i++)
+                        {
+                            var ix = x + arr1[k][i][0];
+                            var iy = y + arr1[k][i][1];
+							if(i==0)
+							{
+								minx = maxx = ix;
+								miny = maxy = iy;
+							}
+							else
+							{
+								if(ix>maxx)
+									maxx = ix;
+								else
+									if(ix<minx)
+										minx = ix;
+								if(iy>maxy)
+									maxy = iy;
+								else
+									if(iy<miny)
+										miny = iy;
+							}
+                            if (arr0[ix][iy] == 0)
+                            {
+                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                                arr0[ix][iy] = 1;
+                            }
+                            else
+                            {
+                                alert("Game Over!");
+								tm = window.clearInterval(tm);
+								return;
+                            }
+                        }
+                        break;
+                    case 1:
+                        var rannum = mapr1;
+                        r1 = rannum;
+                        for (i = 0; i < arr1[k][rannum].length; i++)
+                        {
+                            var ix = x + arr1[k][rannum][i][0];
+                            var iy = y + arr1[k][rannum][i][1];
+							if(i==0)
+							{
+								minx = maxx = ix;
+								miny = maxy = iy;
+							}
+							else
+							{
+								if(ix>maxx)
+									maxx = ix;
+								else
+									if(ix<minx)
+										minx = ix;
+								if(iy>maxy)
+									maxy = iy;
+								else
+									if(iy<miny)
+										miny = iy;
+							}
+                            if (arr0[ix][iy] == 0)
+                            {
+                                $(".obj" + ix + "_" + iy).css("background-color", "#CCC");
+                                arr0[ix][iy] = 1;
+                            }
+                            else
+                            {
+                                alert("Game Over!");
+								tm = window.clearInterval(tm);
+								return;
+                            }
+                        }
+                        break;
+                    case 2:
+                        var rannum1 = mapr1;
+                        var rannum2 = mapr2;
+                        r1 = rannum1;
+                        r2 = rannum2;
+                        //alert(rannum);
+                        for (i = 0; i < arr1[k][rannum1][rannum2].length; i++)
+                        {
+                            var ix = x + arr1[k][rannum1][rannum2][i][0];
+                            var iy = y + arr1[k][rannum1][rannum2][i][1];
+                            if(i==0)
+							{
+								minx = maxx = ix;
+								miny = maxy = iy;
+							}
+							else
+							{
+								if(ix>maxx)
+									maxx = ix;
+								else
+									if(ix<minx)
+										minx = ix;
+								if(iy>maxy)
+									maxy = iy;
+								else
+									if(iy<miny)
+										miny = iy;
+							}
+							if (arr0[ix][iy] == 0)
+                            {
+                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                                arr0[ix][iy] = 1;
+                            }
+                            else
+                            {
+                                alert("Game Over!");
+								tm = window.clearInterval(tm);
+								return;
+                            }
+                        }
+                        break;
+                    case 3:
+                        var rannum = mapr1;
+                        r1 = rannum;
+                        //alert(rannum);
+                        for (i = 0; i < arr1[k][rannum].length; i++)
+                        {
+                            var ix = x + arr1[k][rannum][i][0];
+                            var iy = y + arr1[k][rannum][i][1];
+                            if(i==0)
+							{
+								minx = maxx = ix;
+								miny = maxy = iy;
+							}
+							else
+							{
+								if(ix>maxx)
+									maxx = ix;
+								else
+									if(ix<minx)
+										minx = ix;
+								if(iy>maxy)
+									maxy = iy;
+								else
+									if(iy<miny)
+										miny = iy;
+							}
+							if (arr0[ix][iy] == 0)
+                            {
+                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                                arr0[ix][iy] = 1;
+                            }
+                            else
+                            {
+                                alert("Game Over!");
+								tm = window.clearInterval(tm);
+								return;
+                            }
+                        }
+                        break;
+                    case 4:
+                        var rannum1 = mapr1;
+                        var rannum2 = mapr2;
+                        r1 = rannum1;
+                        r2 = rannum2;
+                        //alert(rannum);
+                        for (i = 0; i < arr1[k][rannum1][rannum2].length; i++)
+                        {
+                            var ix = x + arr1[k][rannum1][rannum2][i][0];
+                            var iy = y + arr1[k][rannum1][rannum2][i][1];
+                            if(i==0)
+							{
+								minx = maxx = ix;
+								miny = maxy = iy;
+							}
+							else
+							{
+								if(ix>maxx)
+									maxx = ix;
+								else
+									if(ix<minx)
+										minx = ix;
+								if(iy>maxy)
+									maxy = iy;
+								else
+									if(iy<miny)
+										miny = iy;
+							}
+							if (arr0[ix][iy] == 0)
+                            {
+                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                                arr0[ix][iy] = 1;
+                            }
+                            else
+                            {
+                                alert("Game Over!");
+								tm = window.clearInterval(tm);
+								return;
+                            }
+                        }
+                        break;
+               		}
+					mapxx();
+				}
+                //-----------------------------
+				mapxx();
+				xcreate();
+				var scf = 0;
+				function xxx(){
+					for(i=minx;i<maxx+1;i++)
+					{
+						var temp = true;
+						for(j=0;j<B;j++)
+						{
+							if(arr0[i][j]!=2)
+							{
+								temp = false;
+								break;
+							}
+						}
+						if(temp)
+						{
+							for(ii=i;ii>0;ii--)
+							{
+								for(j=0;j<B;j++)
+								{
+									arr0[ii][j]=arr0[ii-1][j];
+									switch(arr0[ii][j])
+									{
+										case 0:
+											$(".obj" + ii + "_" + j).css("background-color", C_333);
+										break;
+										case 1:
+											$(".obj" + ii + "_" + j).css("background-color", C_CCC);
+										break;
+										case 2:
+											$(".obj" + ii + "_" + j).css("background-color", C_999);
+										break;
+									}
+								}
+							}
+							scf++;
+							if(scf>zf)
+								setCookie(scf+"");
+							$('h1').html("得分："+scf);
+						}
+					}
+				}
+				function xdown()
+				{ 
+                	if (xt == 0)
+                    {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa+1 + arr1[xt][i][0];
+                                    var iy = bb + arr1[xt][i][1];
+                                    if (maxx+1==A||arr0[ix][iy] == 2)
+                                    {
+										//window.status = maxx;
+                                        for (j = 0; j < 4; j++)
+                                		{
+                                    		var oldix = aa + arr1[xt][j][0];
+                                    		var oldiy = bb + arr1[xt][j][1];
+                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		arr0[oldix][oldiy] = 2;
+                                		}
+										xxx();
+										xcreate();
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][i][0];
+                                    var oldiy = bb + arr1[xt][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa+1 + arr1[xt][i][0];
+                                    var newiy = bb + arr1[xt][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                aa++;
+                            } else if (xt == 1)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = (aa + 1) + arr1[xt][r1][i][0];
+                                    var iy = bb + arr1[xt][r1][i][1];
+									if (maxx+1==A||arr0[ix][iy] == 2)
+                                    {
+                                        for (j = 0; j < 4; j++)
+                                		{
+                                    		var oldix = aa + arr1[xt][r1][j][0];
+                                    		var oldiy = bb + arr1[xt][r1][j][1];
+                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		arr0[oldix][oldiy] = 2;
+                                		}
+										xxx();
+										xcreate();
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][r1][i][0];
+                                    var oldiy = bb + arr1[xt][r1][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa+1 + arr1[xt][r1][i][0];
+                                    var newiy = bb + arr1[xt][r1][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+								    arr0[newix][newiy] = 1;
+                                }
+                                aa++;
+                            } else if (xt == 2)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa+1 + arr1[xt][r1][r2][i][0];
+                                    var iy = bb + arr1[xt][r1][r2][i][1];
+                                    if (maxx+1==A||arr0[ix][iy] == 2)
+                                    {
+										//window.status = maxx;
+                                        for (j = 0; j < 4; j++)
+                                		{
+                                    		var oldix = aa + arr1[xt][r1][r2][j][0];
+                                    		var oldiy = bb + arr1[xt][r1][r2][j][1];
+                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		arr0[oldix][oldiy] = 2;
+                                		}
+										xxx();
+										xcreate();
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][r1][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][r1][rannum][i][1];
+                                    var oldix = aa + arr1[xt][r1][r2][i][0];
+                                    var oldiy = bb + arr1[xt][r1][r2][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa+1 + arr1[xt][r1][r2][i][0];
+                                    var newiy = bb + arr1[xt][r1][r2][i][1];
+                                    //var oldix = aa+arr1[xt][r1][r2][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                aa++;
+                            } else if (xt == 3)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa+1 + arr1[xt][r1][i][0];
+                                    var iy = bb + arr1[xt][r1][i][1];
+                                    if (maxx+1==A||arr0[ix][iy] == 2)
+                                    {
+										//window.status = maxx;
+                                        for (j = 0; j < 4; j++)
+                                		{
+                                    		var oldix = aa + arr1[xt][r1][j][0];
+                                    		var oldiy = bb + arr1[xt][r1][j][1];
+                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		arr0[oldix][oldiy] = 2;
+                                		}
+										xxx();
+										xcreate();
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][rannum][i][1];
+                                    var oldix = aa + arr1[xt][r1][i][0];
+                                    var oldiy = bb + arr1[xt][r1][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa+1 + arr1[xt][r1][i][0];
+                                    var newiy = bb + arr1[xt][r1][i][1];
+                                    //var oldix = aa+arr1[xt][r1][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                aa++;
+                            } else if (xt == 4)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa+1 + arr1[xt][r1][r2][i][0];
+                                    var iy = bb + arr1[xt][r1][r2][i][1];
+									//window.status = aa;
+                                    if (maxx+1==A||arr0[ix][iy] == 2)
+                                    {
+										//window.status = maxx;
+                                        for (j = 0; j < 4; j++)
+                                		{
+                                    		var oldix = aa + arr1[xt][r1][r2][j][0];
+                                   			var oldiy = bb + arr1[xt][r1][r2][j][1];
+                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		arr0[oldix][oldiy] = 2;
+                                		}
+										xxx();
+										xcreate();
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][r1][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][r1][rannum][i][1];
+                                    var oldix = aa + arr1[xt][r1][r2][i][0];
+                                    var oldiy = bb + arr1[xt][r1][r2][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa+1 + arr1[xt][r1][r2][i][0];
+                                    var newiy = bb + arr1[xt][r1][r2][i][1];
+                                    //var oldix = aa+arr1[xt][r1][r2][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                aa++;
+                            }
+				}
+                //light(0,0);
+				var btim = true;
+                $(document).keydown(function() {
+                    //alert(event.keyCode);
+                    switch (event.keyCode)
+                    {
+                        case 13:
+						if(btim)
+						{
+							$('h2').html("暂停中..");
+							tm = window.clearInterval(tm);
+							btim = false;
+						}else
+						{
+							$('h2').html("下一个..");
+							tm = window.setInterval(xdown,TIM);
+							btim = true;
+						}
+						break;
+						case 32:
+						if(btim)
+						{
+							var a3 = aa;
+							var b3 = bb;
+							aa = aa<0?0:aa>=A?A-1:aa;
+							bb = bb<0?0:bb>=B?B-1:bb;
+							//alert(aa+"_"+bb);
+                            if (xt == 1)
+                            {
+								//var arr3 = new Array();
+								//var len = 0;
+                                var rannum = (r1 + 1) % 2;
+								if(maxy-miny<3)
+                                	bb = B-bb<4?B-4:bb;
+								if(maxx-minx<3)
+                                	aa = A-aa<4?A-4:aa;
+								for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][rannum][i][0];
+                                    var iy = bb + arr1[xt][rannum][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = a3 + arr1[xt][r1][i][0];
+                                    var oldiy = b3 + arr1[xt][r1][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][rannum][i][0];
+                                    var newiy = bb + arr1[xt][rannum][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                r1 = rannum;
+                            } else if (xt == 2)
+                            {
+                                var rannum = (r2 + 1) % 4;
+                                if(maxy-miny<3)
+                                	bb = B-bb<3?B-3:bb;
+								if(maxx-minx<3)
+                                	aa = A-aa<3?A-3:aa;
+								for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][rannum][i][0];
+                                    var iy = bb + arr1[xt][r1][rannum][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        //alert("rt");
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][r1][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][r1][rannum][i][1];
+                                    var oldix = a3 + arr1[xt][r1][r2][i][0];
+                                    var oldiy = b3 + arr1[xt][r1][r2][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][rannum][i][0];
+                                    var newiy = bb + arr1[xt][r1][rannum][i][1];
+                                    //var oldix = aa+arr1[xt][r1][r2][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                r2 = rannum;
+                            } else if (xt == 3)
+                            {
+                                var rannum = (r1 + 1) % 4;
+								if(maxy-miny<3)
+                                	bb = B-bb<3?B-3:bb;
+								if(maxx-minx<3)
+                                	aa = A-aa<3?A-3:aa;
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][rannum][i][0];
+                                    var iy = bb + arr1[xt][rannum][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        //alert("rt");
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][rannum][i][1];
+                                    var oldix = a3 + arr1[xt][r1][i][0];
+                                    var oldiy = b3 + arr1[xt][r1][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][rannum][i][0];
+                                    var newiy = bb + arr1[xt][rannum][i][1];
+                                    //var oldix = aa+arr1[xt][r1][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                r1 = rannum;
+                            } else if (xt == 4)
+                            {
+                                var rannum = (r2 + 1) % 2;
+								 if(maxy-miny<3)
+                                	bb = B-bb<3?B-3:bb;
+								if(maxx-minx<3)
+                                	aa = A-aa<3?A-3:aa;
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][rannum][i][0];
+                                    var iy = bb + arr1[xt][r1][rannum][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        //alert("rt");
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][r1][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][r1][rannum][i][1];
+                                    var oldix = a3 + arr1[xt][r1][r2][i][0];
+                                    var oldiy = b3 + arr1[xt][r1][r2][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][rannum][i][0];
+                                    var newiy = bb + arr1[xt][r1][rannum][i][1];
+                                    //var oldix = aa+arr1[xt][r1][r2][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                r2 = rannum;
+                            }
+							}
+							break;
+						case 37:
+						if(btim)
+						{
+                            if (miny - 1 >= 0)
+                                if (xt == 0)
+                            	{
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][i][0];
+                                    var iy = (bb-1) + arr1[xt][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][i][0];
+                                    var oldiy = bb + arr1[xt][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][i][0];
+                                    var newiy = (bb-1) + arr1[xt][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb--;
+                            } else if (xt == 1)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][i][0];
+                                    var iy = (bb-1) + arr1[xt][r1][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][r1][i][0];
+                                    var oldiy = bb + arr1[xt][r1][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][i][0];
+                                    var newiy = (bb-1) + arr1[xt][r1][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb--;
+                            } else if (xt == 2)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][r2][i][0];
+                                    var iy = (bb-1) + arr1[xt][r1][r2][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        //alert("rt");
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][r1][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][r1][rannum][i][1];
+                                    var oldix = aa + arr1[xt][r1][r2][i][0];
+                                    var oldiy = bb + arr1[xt][r1][r2][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][r2][i][0];
+                                    var newiy = bb-1 + arr1[xt][r1][r2][i][1];
+                                    //var oldix = aa+arr1[xt][r1][r2][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                bb--;
+                            } else if (xt == 3)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][i][0];
+                                    var iy = bb-1 + arr1[xt][r1][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        //alert("rt");
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][rannum][i][1];
+                                    var oldix = aa + arr1[xt][r1][i][0];
+                                    var oldiy = bb + arr1[xt][r1][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][i][0];
+                                    var newiy = bb-1 + arr1[xt][r1][i][1];
+                                    //var oldix = aa+arr1[xt][r1][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
+                                    arr0[newix][newiy] = 1;
+                                    //arr0[oldix][oldiy]=0;
+                                }
+                                bb--;
+                            } else if (xt == 4)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][r2][i][0];
+                                    var iy = bb-1 + arr1[xt][r1][r2][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        //alert("rt");
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    //var newix = aa+arr1[xt][r1][rannum][i][0];
+                                    //var newiy = bb+arr1[xt][r1][rannum][i][1];
+                                    var oldix = aa + arr1[xt][r1][r2][i][0];
+                                    var oldiy = bb + arr1[xt][r1][r2][i][1];
+                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    //arr0[newix][newiy]=1;
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][r2][i][0];
+                                    var newiy = bb-1 + arr1[xt][r1][r2][i][1];
+                                    //var oldix = aa+arr1[xt][r1][r2][i][0];
+                                    //var oldiy = bb+arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb--;
+                            }
+						}
+                            break;
+                        case 39:
+                        if(btim)
+						{
+							if (maxy + 1 < B)
+                                if (xt == 0)
+                            	{
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][i][0];
+                                    var iy = (bb+1) + arr1[xt][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][i][0];
+                                    var oldiy = bb + arr1[xt][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][i][0];
+                                    var newiy = (bb+1) + arr1[xt][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb++;
+                            } else if (xt == 1)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][i][0];
+                                    var iy = (bb+1) + arr1[xt][r1][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][r1][i][0];
+                                    var oldiy = bb + arr1[xt][r1][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][i][0];
+                                    var newiy = (bb+1) + arr1[xt][r1][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb++;
+                            } else if (xt == 2)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][r2][i][0];
+                                    var iy = (bb+1) + arr1[xt][r1][r2][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][r1][r2][i][0];
+                                    var oldiy = bb + arr1[xt][r1][r2][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][r2][i][0];
+                                    var newiy = bb+1 + arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb++;
+                            } else if (xt == 3)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][i][0];
+                                    var iy = bb+1 + arr1[xt][r1][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][r1][i][0];
+                                    var oldiy = bb + arr1[xt][r1][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][i][0];
+                                    var newiy = bb+1 + arr1[xt][r1][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb++;
+                            } else if (xt == 4)
+                            {
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var ix = aa + arr1[xt][r1][r2][i][0];
+                                    var iy = bb+1 + arr1[xt][r1][r2][i][1];
+                                    if (arr0[ix][iy] == 2)
+                                    {
+                                        //alert("rt");
+                                        return;
+                                    }
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var oldix = aa + arr1[xt][r1][r2][i][0];
+                                    var oldiy = bb + arr1[xt][r1][r2][i][1];
+                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    arr0[oldix][oldiy] = 0;
+                                }
+                                for (i = 0; i < 4; i++)
+                                {
+                                    var newix = aa + arr1[xt][r1][r2][i][0];
+                                    var newiy = bb+1 + arr1[xt][r1][r2][i][1];
+                                    if(i==0)
+									{	
+										minx = maxx = newix;
+										miny = maxy = newiy;
+									}
+									else
+									{
+										if(newix>maxx)
+											maxx = newix;
+										else
+											if(newix<minx)
+												minx = newix;
+										if(newiy>maxy)
+											maxy = newiy;
+										else
+											if(newiy<miny)
+												miny = newiy;
+									}
+									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+                                    arr0[newix][newiy] = 1;
+                                }
+                                bb++;
+                            }
+							}
+                            break;
+                        case 40:
+						if(btim)
+						{
+							if(aa<A)
+                            	xdown();
+                        }
+						    break;
+                    }
+                });
+				$("#bt").css({"position": "absolute", "z-index": "2", "left": 12*N+"px", "top": "0px"});
+				tm = window.setInterval(xdown,TIM);
+            });
+			//-->
+        </script>
+    </head>
+
+    <body>
+        构建地图中
+        <div id="bt"></div>
+    </body>
+</html>
