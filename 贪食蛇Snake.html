@@ -1,43 +1,47 @@
-﻿<html xmlns="http://www.w3.org/1999/xhtml">
+﻿<!DOCTYPE html>
+<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>地图大作战2</title>
-<script src="jquery-1.8.3.min.js" language="javascript"></script>
+<style type="text/css">
+	div{position:absolute;z-index:1;background-color:#000}
+</style>
+</head>
+<body>
+让我来画一画地图
+</body>
 <script language="javascript">
 /*
 	@author xwbz
 	@2015-2-19 12:30
-	@v1.0
+	@v2.0
 */
 <!--
-$().ready(function(){
+function getWidth(){return document.documentElement['clientWidth']};
+function getHeight(){return document.documentElement['clientHeight']};
+(function(){
 	var N_LEN = 30;
-	var P_WD = $(document).width()-N_LEN;
-	var P_HG = $(document).height()-N_LEN;
+	var P_WD = getWidth()-N_LEN;
+	var P_HG = getHeight()-N_LEN;
 	var WD = (P_WD/N_LEN).toFixed(0);
 	var HG = (P_HG/N_LEN).toFixed(0);
-	//alert(WD+"_"+HG);
 	var xf = 0;
 	var ex = 0;
 	var ey = 0;
 	var slen = 2;
 	var nstp = true;
 	var ND = 100;
-	$('body').html('');
+	document.body.innerHTML = '';
 	function mapini(i,j)
 	{
-		$('body').append($("<div class='map"+i+"_"+j+"'></div>"));
-		$(".map"+i+"_"+j).css({"position" : "absolute" , "z-index" : "1","height":N_LEN+"px","width":N_LEN+"px","top":(i*N_LEN)+"px","left":(j*N_LEN)+"px","background-color":"#000"});
+		var tmpDiv = document.createElement('div');
+		tmpDiv.id = 'map'+i+'_'+j;
+		tmpDiv.style = "height:"+N_LEN+"px;width:"+N_LEN+"px;top:"+(i*N_LEN)+"px;left:"+(j*N_LEN)+"px";
+		document.body.appendChild(tmpDiv);
 	}
 	var skarr = new Array();
-	function skkini(i,j,col)
-	{
-		//"#000"
-		//"#999"
-		//"transparent"
-		$(".map"+i+"_"+j).css("background-color", col);
-		//arr[i][j] = 1;
-	}
+	function skkini(i,j,col){document.getElementById("map"+i+"_"+j).style.backgroundColor = col};
 	var arr = new Array(HG);
 	for(i=0;i<HG;i++)
 	{
@@ -51,7 +55,6 @@ $().ready(function(){
 	//-----------------
 	skarr.push([1,0]);
 	skarr.push([0,0]);
-	//alert(skarr[0][1]);
 	function prisk()
 	{
 		for(i=0;i<slen;i++)
@@ -195,154 +198,50 @@ $().ready(function(){
 		}
 	}
 	var btim = true;
-	$(document).keydown(function(){
-		//alert(event.keyCode);
+	document.addEventListener('keydown', function(){
 		switch(event.keyCode)
 		{
 			case 32:
-			if(nstp){
-						if(btim)
-						{
-							document.title = "暂停中..";
-							runst = window.clearInterval(runst);
-							btim = false;
-						}else
-						{
-							document.title = "得分："+(slen-2);
-							runst = window.setInterval(smove,ND);
-							btim = true;
-						}
-			}
+				if(nstp){
+					if(btim)
+					{
+						document.title = "暂停中..";
+						runst = window.clearInterval(runst);
+						btim = false;
+					}else
+					{
+						document.title = "得分："+(slen-2);
+						runst = window.setInterval(smove,ND);
+						btim = true;
+					}
+				}
 				break;
 			case 37:
 				if(btim&&nstp&&(xf==0||xf==2)){
-/*					var tempx = skarr[0][0];
-					var tempy = skarr[0][1];
-					tempy--;
-					if(tempy>=0&&arr[tempx][tempy]!=1)
-					{
-						skarr.unshift([tempx,tempy]);
-					if(arr[tempx][tempy]==0)
-					{
-						var temparr = skarr.pop();	
-						skkini(temparr[0],temparr[1],"#000");
-						arr[temparr[0]][temparr[1]] = 0;
-					}
-					else
-					{
-						arr[tempx][tempy]=1;
-						slen++;
-						xd();
-					}
-					prisk();
-*/						xf = 1;
-/*					}else{
-						alert("Game Over!\r\n\r\n得分："+(slen-2));
-						runst = window.clearInterval(runst);
-						nstp = false;
-					}
-*/				}
+						xf = 1;
+				}
 				break;
 			case 38:
-			if(btim&&nstp&&(xf==1||xf==3))
-			{
-/*				var tempx = skarr[0][0];
-				var tempy = skarr[0][1];
-				tempx--;
-				if(tempx>=0&&arr[tempx][tempy]!=1)
+				if(btim&&nstp&&(xf==1||xf==3))
 				{
-					skarr.unshift([tempx,tempy]);
-					if(arr[tempx][tempy]==0)
-					{
-						var temparr = skarr.pop();	
-						skkini(temparr[0],temparr[1],"#000");
-						arr[temparr[0]][temparr[1]] = 0;
-					}
-					else
-					{
-						arr[tempx][tempy]=1;
-						slen++;
-						xd();
-					}
-					prisk();
-*/					xf = 2;
-/*				}else{
-					alert("Game Over!\r\n\r\n得分："+(slen-2));
-					runst = window.clearInterval(runst);
-					nstp = false;
+					xf = 2;
 				}
-*/			}
 				break;
 			case 39:
-			if(btim&&nstp&&(xf==0||xf==2))
-			{/*
-				var tempx = skarr[0][0];
-				var tempy = skarr[0][1];
-				tempy++;
-				if(tempx<WD&&arr[tempx][tempy]!=1)
-				{
-					skarr.unshift([tempx,tempy]);
-					if(arr[tempx][tempy]==0)
-					{
-						var temparr = skarr.pop();	
-						skkini(temparr[0],temparr[1],"#000");
-						arr[temparr[0]][temparr[1]] = 0;
-					}
-					else
-					{
-						arr[tempx][tempy]=1;
-						slen++;
-						xd();
-					}
-					prisk();*/
+				if(btim&&nstp&&(xf==0||xf==2))
+				{ 
 					xf = 3;
-				/*}else{
-					alert("Game Over!\r\n\r\n得分："+(slen-2));
-					runst = window.clearInterval(runst);
-					nstp = false;
-				}*/
-			}
+				}
 				break;
 			case 40:
-			if(btim&&nstp&&(xf==1||xf==3))
-			{
-				/*
-				var tempx = skarr[0][0];
-				var tempy = skarr[0][1];
-				tempx++;
-				if(tempx<HG&&arr[tempx][tempy]!=1)
+				if(btim&&nstp&&(xf==1||xf==3))
 				{
-					skarr.unshift([tempx,tempy]);
-					if(arr[tempx][tempy]==0)
-					{
-						var temparr = skarr.pop();	
-						skkini(temparr[0],temparr[1],"#000");
-						arr[temparr[0]][temparr[1]] = 0;
-					}
-					else
-					{
-						arr[tempx][tempy]=1;
-						slen++;
-						xd();
-					}*/
 					xf = 0;
-				/*}else{
-					alert("Game Over!\r\n\r\n得分："+(slen-2));
-					runst = window.clearInterval(runst);
-					nstp = false;
-				}*/
-			}
+				}
 				break;
 		}	
-	});
-	//arr[9][1] = 1;
-	//alert(arr[9]+"_"+arr[0]);	
-});
+	}, false);
+})();
 //-->
 </script>
-</head>
-
-<body>
-让我来画一画地图
-</body>
 </html>

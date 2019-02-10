@@ -1,22 +1,30 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+       	<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title>地图大作战</title>
-        <script src="jquery-1.8.3.min.js" language="javascript"></script>
+   </head>
+<body>
+    构建地图中
+    <div id="bt"></div>
+</body>
         <script language="javascript">
 		<!--
-            $().ready(function() {
+			function getWidth(){return document.documentElement['clientWidth']};
+			function getHeight(){return document.documentElement['clientHeight']};
+            (function() {
 				/*
 					2015-2-15 22:30
 					@author xwbz
-					v2.0
+					v3.0
 				*/
                 var A = 20;		/*	纵长20格 */
                 var B = 10;		/*	横长10格 */
 				var TIM = 500;	/*	下落速度（毫秒） */
-                var H = $(document).height() / A;
-                var W = $(document).width() / B;
-                var N = H > W ? W : H;
+                var H = getHeight() / A;
+                var W = getWidth() / B;
+                var N = ~~(H > W ? W : H);
 				//------------颜色---------------
 				var C_333 = "#333"; //黑灰色
 				var C_36C = "#36C"; //蓝色
@@ -28,37 +36,19 @@
                 var x = 0, y = 0, k = 0,zf = 0,aa=0,bb = 0;
                 function ini(x, y)
                 {
-                    $("body").append($("<div class='obj" + x + "_" + y + "'></div>"));
-                    $(".obj" + x + "_" + y).css({"position": "absolute", "height": N + "px", "width": N + "px", "z-index": "1", "left": (y * N) + "px", "top": (x * N) + "px", "background-color":C_333});
+                	var tmpDiv = document.createElement('div');
+                	tmpDiv.className = "obj" + x + "_" + y;
+                	tmpDiv.style = "position:absolute;height:" + N + "px;width:"+ N + "px;z-index:1;left:"+ (y * N) + "px;top:" + (x * N) + "px;background-color:"+C_333;
+                	document.body.appendChild(tmpDiv);
                 }
-				//------------Cookie开始----------
+				//-----------最高分开始----------
 				var c_name = "x55";
-				function getCookie()
-				{
-					if(document.cookie.length>0)
-					{	
-						c_start=document.cookie.indexOf(c_name + "=");
-  						if (c_start!=-1)
-    					{ 
-    						c_start=c_start + c_name.length+1;
-    						c_end=document.cookie.indexOf(";",c_start);
-    						if (c_end==-1) c_end=document.cookie.length;
-    						return unescape(document.cookie.substring(c_start,c_end));
-   	 					} 
-  					}
-					return "0";
-				}
-				function setCookie(val)
-				{
-					var exdate=new Date();
-					exdate.setDate(exdate.getDate()+365);
-					document.cookie=c_name+ "=" +escape(val)+(";expires="+exdate.toGMTString());
-				}
-				zf = new Number(getCookie());
-				//-----------Cookie结束----------
-				$("#bt").append($("<h2>下一个形状</h2>")).append($('<div class="map">map</div>')).append($('<h1>最高得分：'+zf+'<br/>目前得分：0</h1>')).append($('<h3>回车键暂停<br/>空格键变形<br/>←左↓下→右</h3>'));
-                $('h1').css({"color":C_36C,"padding-top":4*N+"px"});
-				$('h3').css({"color":C_69C,"padding-top":N+"px","padding-left":N+"px"});
+				function getRank(){return localStorage.getItem(c_name) || '0'};
+				function saveRank(val){localStorage.setItem(c_name, val)};
+				zf = new Number(getRank());
+				console.log(zf);
+				//---------------------
+				document.getElementById('bt').innerHTML = '<h2>下一个形状</h2><div class="map">map</div><h1 style="color:'+C_36C+';padding-top:'+(4*N)+'px">最高得分：'+zf+'<br/>目前得分：0</h1><h3 style="color:'+C_69C+';padding-top:'+N+'px;padding-left:'+N+'px">回车键暂停<br/>空格键变形<br/>←左↓下→右</h3>';
                 var arr0 = new Array(A);
                 for (var i = 0; i < A; i++)
                 {
@@ -115,12 +105,15 @@
 				var mapxt = 0, mapr1 = 0, mapr2 = 0;
 				function mapini(x,y)
 				{
-					$(".map").append($("<div class='map" + x + "_" + y + "'></div>"));
-                    $(".map" + x + "_" + y).css({"position": "absolute","z-index":"2", "height": (N/2) + "px", "width": (N/2) + "px", "left": (y * (N/2)+N*2) + "px", "top": (x * (N/2)+N*3) + "px", "background-color":C_RED});
+					var tmpDiv = document.createElement('div');
+					tmpDiv.className = "map" + x + "_" + y;
+					tmpDiv.style = "position:absolute;z-index:2;height:"+ (N/2) + "px;width:"+ (N/2) + "px;left:"+ (y * (N/2)+N*2) + "px;top:"+ (x * (N/2)+N*3) + "px;background-color:"+C_RED;
+					document.querySelector(".map").appendChild(tmpDiv);
 				}
+				function colormap(i, j, c){document.querySelector(".obj" + i + "_" + j).style.backgroundColor = c};
 				function mapxx()
 				{
-					$(".map").html("");
+					document.querySelector(".map").innerHTML = '';
 					mapxt = (new Date().getMilliseconds())%5;
 					switch(mapxt)
 					{
@@ -196,7 +189,7 @@
 							}
                             if (arr0[ix][iy] == 0)
                             {
-                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                            	colormap(ix, iy, C_CCC);
                                 arr0[ix][iy] = 1;
                             }
                             else
@@ -234,7 +227,7 @@
 							}
                             if (arr0[ix][iy] == 0)
                             {
-                                $(".obj" + ix + "_" + iy).css("background-color", "#CCC");
+                             	colormap(ix, iy, "#CCC");
                                 arr0[ix][iy] = 1;
                             }
                             else
@@ -275,7 +268,7 @@
 							}
 							if (arr0[ix][iy] == 0)
                             {
-                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                            	colormap(ix, iy, C_CCC);
                                 arr0[ix][iy] = 1;
                             }
                             else
@@ -314,7 +307,7 @@
 							}
 							if (arr0[ix][iy] == 0)
                             {
-                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                            	colormap(ix, iy, C_CCC);
                                 arr0[ix][iy] = 1;
                             }
                             else
@@ -355,7 +348,7 @@
 							}
 							if (arr0[ix][iy] == 0)
                             {
-                                $(".obj" + ix + "_" + iy).css("background-color", C_CCC);
+                            	colormap(ix, iy, C_CCC);
                                 arr0[ix][iy] = 1;
                             }
                             else
@@ -395,21 +388,21 @@
 									switch(arr0[ii][j])
 									{
 										case 0:
-											$(".obj" + ii + "_" + j).css("background-color", C_333);
-										break;
+											colormap(ii, j, C_333);
+											break;
 										case 1:
-											$(".obj" + ii + "_" + j).css("background-color", C_CCC);
-										break;
+											colormap(ii, j, C_CCC);
+											break;
 										case 2:
-											$(".obj" + ii + "_" + j).css("background-color", C_999);
-										break;
+											colormap(ii, j, C_999);
+											break;
 									}
 								}
 							}
 							scf++;
 							if(scf>zf)
-								setCookie(scf+"");
-							$('h1').html("得分："+scf);
+								saveRank(scf+"");
+							document.querySelector('h1').innerHTML = "得分："+scf;
 						}
 					}
 				}
@@ -428,7 +421,7 @@
                                 		{
                                     		var oldix = aa + arr1[xt][j][0];
                                     		var oldiy = bb + arr1[xt][j][1];
-                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		colormap(oldix, oldiy, C_999);
                                     		arr0[oldix][oldiy] = 2;
                                 		}
 										xxx();
@@ -440,7 +433,7 @@
                                 {
                                     var oldix = aa + arr1[xt][i][0];
                                     var oldiy = bb + arr1[xt][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -465,7 +458,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 aa++;
@@ -481,7 +474,7 @@
                                 		{
                                     		var oldix = aa + arr1[xt][r1][j][0];
                                     		var oldiy = bb + arr1[xt][r1][j][1];
-                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		colormap(oldix, oldiy, C_999);
                                     		arr0[oldix][oldiy] = 2;
                                 		}
 										xxx();
@@ -493,7 +486,7 @@
                                 {
                                     var oldix = aa + arr1[xt][r1][i][0];
                                     var oldiy = bb + arr1[xt][r1][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -518,7 +511,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
 								    arr0[newix][newiy] = 1;
                                 }
                                 aa++;
@@ -535,7 +528,7 @@
                                 		{
                                     		var oldix = aa + arr1[xt][r1][r2][j][0];
                                     		var oldiy = bb + arr1[xt][r1][r2][j][1];
-                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		colormap(oldix, oldiy, C_999);
                                     		arr0[oldix][oldiy] = 2;
                                 		}
 										xxx();
@@ -550,7 +543,7 @@
                                     var oldix = aa + arr1[xt][r1][r2][i][0];
                                     var oldiy = bb + arr1[xt][r1][r2][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -578,7 +571,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -597,7 +590,7 @@
                                 		{
                                     		var oldix = aa + arr1[xt][r1][j][0];
                                     		var oldiy = bb + arr1[xt][r1][j][1];
-                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		colormap(oldix, oldiy, C_999);
                                     		arr0[oldix][oldiy] = 2;
                                 		}
 										xxx();
@@ -612,7 +605,7 @@
                                     var oldix = aa + arr1[xt][r1][i][0];
                                     var oldiy = bb + arr1[xt][r1][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -640,7 +633,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -660,7 +653,7 @@
                                 		{
                                     		var oldix = aa + arr1[xt][r1][r2][j][0];
                                    			var oldiy = bb + arr1[xt][r1][r2][j][1];
-                                    		$(".obj" + oldix + "_" + oldiy).css("background-color", C_999);
+                                    		colormap(oldix, oldiy, C_999);
                                     		arr0[oldix][oldiy] = 2;
                                 		}
 										xxx();
@@ -675,7 +668,7 @@
                                     var oldix = aa + arr1[xt][r1][r2][i][0];
                                     var oldiy = bb + arr1[xt][r1][r2][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -703,7 +696,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -713,19 +706,19 @@
 				}
                 //light(0,0);
 				var btim = true;
-                $(document).keydown(function() {
-                    //alert(event.keyCode);
+				document.addEventListener('keydown', function() {
+                    var h2 = document.querySelector('h2');
                     switch (event.keyCode)
                     {
                         case 13:
 						if(btim)
 						{
-							$('h2').html("暂停中..");
+							h2.innerHTML = "暂停中..";
 							tm = window.clearInterval(tm);
 							btim = false;
 						}else
 						{
-							$('h2').html("下一个..");
+							h2.innerHTML = "下一个..";
 							tm = window.setInterval(xdown,TIM);
 							btim = true;
 						}
@@ -760,7 +753,7 @@
                                 {
                                     var oldix = a3 + arr1[xt][r1][i][0];
                                     var oldiy = b3 + arr1[xt][r1][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -785,7 +778,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 r1 = rannum;
@@ -813,7 +806,7 @@
                                     var oldix = a3 + arr1[xt][r1][r2][i][0];
                                     var oldiy = b3 + arr1[xt][r1][r2][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -841,7 +834,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -870,8 +863,7 @@
                                     //var newiy = bb+arr1[xt][rannum][i][1];
                                     var oldix = a3 + arr1[xt][r1][i][0];
                                     var oldiy = b3 + arr1[xt][r1][i][1];
-                                    //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -899,7 +891,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -929,7 +921,7 @@
                                     var oldix = a3 + arr1[xt][r1][r2][i][0];
                                     var oldiy = b3 + arr1[xt][r1][r2][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -957,7 +949,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -985,7 +977,7 @@
                                 {
                                     var oldix = aa + arr1[xt][i][0];
                                     var oldiy = bb + arr1[xt][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -1010,7 +1002,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb--;
@@ -1029,7 +1021,7 @@
                                 {
                                     var oldix = aa + arr1[xt][r1][i][0];
                                     var oldiy = bb + arr1[xt][r1][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -1054,7 +1046,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb--;
@@ -1077,7 +1069,7 @@
                                     var oldix = aa + arr1[xt][r1][r2][i][0];
                                     var oldiy = bb + arr1[xt][r1][r2][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -1105,7 +1097,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -1130,7 +1122,7 @@
                                     var oldix = aa + arr1[xt][r1][i][0];
                                     var oldiy = bb + arr1[xt][r1][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -1158,7 +1150,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     //$(".obj"+oldix+"_"+oldiy).css("background-color",C_333);	
                                     arr0[newix][newiy] = 1;
                                     //arr0[oldix][oldiy]=0;
@@ -1183,7 +1175,7 @@
                                     var oldix = aa + arr1[xt][r1][r2][i][0];
                                     var oldiy = bb + arr1[xt][r1][r2][i][1];
                                     //$(".obj"+newix+"_"+newiy).css("background-color",C_CCC);	
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     //arr0[newix][newiy]=1;
                                     arr0[oldix][oldiy] = 0;
                                 }
@@ -1211,7 +1203,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb--;
@@ -1237,7 +1229,7 @@
                                 {
                                     var oldix = aa + arr1[xt][i][0];
                                     var oldiy = bb + arr1[xt][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -1263,7 +1255,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb++;
@@ -1282,7 +1274,7 @@
                                 {
                                     var oldix = aa + arr1[xt][r1][i][0];
                                     var oldiy = bb + arr1[xt][r1][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -1307,7 +1299,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb++;
@@ -1326,7 +1318,7 @@
                                 {
                                     var oldix = aa + arr1[xt][r1][r2][i][0];
                                     var oldiy = bb + arr1[xt][r1][r2][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -1337,7 +1329,6 @@
 									{	
 										minx = maxx = newix;
 										miny = maxy = newiy;
-
 									}
 									else
 									{
@@ -1352,7 +1343,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb++;
@@ -1371,7 +1362,7 @@
                                 {
                                     var oldix = aa + arr1[xt][r1][i][0];
                                     var oldiy = bb + arr1[xt][r1][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                    colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -1396,7 +1387,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb++;
@@ -1408,7 +1399,6 @@
                                     var iy = bb+1 + arr1[xt][r1][r2][i][1];
                                     if (arr0[ix][iy] == 2)
                                     {
-                                        //alert("rt");
                                         return;
                                     }
                                 }
@@ -1416,7 +1406,7 @@
                                 {
                                     var oldix = aa + arr1[xt][r1][r2][i][0];
                                     var oldiy = bb + arr1[xt][r1][r2][i][1];
-                                    $(".obj" + oldix + "_" + oldiy).css("background-color", C_333);
+                                   	colormap(oldix, oldiy, C_333);
                                     arr0[oldix][oldiy] = 0;
                                 }
                                 for (i = 0; i < 4; i++)
@@ -1441,7 +1431,7 @@
 											if(newiy<miny)
 												miny = newiy;
 									}
-									$(".obj" + newix + "_" + newiy).css("background-color", C_CCC);
+									colormap(newix, newiy, C_CCC);
                                     arr0[newix][newiy] = 1;
                                 }
                                 bb++;
@@ -1456,16 +1446,11 @@
                         }
 						    break;
                     }
-                });
-				$("#bt").css({"position": "absolute", "z-index": "2", "left": 12*N+"px", "top": "0px"});
+                }, false);
+				document.querySelector("#bt").style = "position:absolute;z-index:2;left:"+ 12*N+"px;top:0px";
 				tm = window.setInterval(xdown,TIM);
-            });
+            })();
 			//-->
         </script>
-    </head>
-
-    <body>
-        构建地图中
-        <div id="bt"></div>
-    </body>
+ 
 </html>

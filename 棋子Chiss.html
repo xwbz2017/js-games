@@ -28,12 +28,16 @@
 	}
 	div.choosed{ border: 2px solid; }
 </style>
-<script src="jquery-1.8.3.min.js" language="javascript"></script>
+</head>
+
+<body>
+让我来画一画地图
+</body>
 <script language="javascript">
 /*
 	@author xwbz
 	@2019年2月2日 10:50:18
-	@v0.2
+	@v1.0
 */
 <!--
 var P_WD,P_HG,N_LEN;
@@ -48,6 +52,8 @@ var CANNOT_EAT_ARR = [[11,12,13,14,15],
 var SIDE_ARR = ['黑方', '红方'];
 var showAlert = true;
 
+function getWidth(){return document.documentElement['clientWidth']};
+function getHeight(){return document.documentElement['clientHeight']};
 function canMove(idx, p){
 	if(p === -1) return true; // 空格
 	if(p === 0) return false; // 未翻开
@@ -202,28 +208,30 @@ function findChissMoveableArr(i, j, map){
 	return moveArr;
 }
 
-function dom(i, j){return $("#map"+i+"_"+j)}
-function mapini(i,j) { $("<div id='map"+i+"_"+j+"' class='chiss hide'></div>")
-	.css({"height":N_LEN+"px","width":N_LEN+"px","top":(i*N_LEN)+"px","left":(j*N_LEN)+"px","line-height":N_LEN+"px"})
-	.attr("onclick", "chissClick("+i+","+j+")")
-	.appendTo($('body'))}
-function removeChiss(i, j){dom(i, j).removeClass('chiss').removeClass('hide').removeClass('red').removeClass('black').text('')}
-function showChiss(i, j, chissidx){dom(i, j).addClass('chiss').addClass(chissidx<16?'black':'red').text(CHISS_ARR[chissidx])}
-function choose(i, j, t){(d = dom(i, j), t ? d.addClass('choosed') : d.removeClass('choosed'))}
-function log(side, msg){console.info(SIDE_ARR[side], msg)}
-
-$(function(){
-	P_WD = $(document).width();
-	P_HG = $(document).height();
+function dom(i, j){return document.getElementById("map"+i+"_"+j)}
+function mapini(i,j) { 
+	var tmpDiv = document.createElement('div');
+	tmpDiv.id = 'map'+i+'_'+j;
+	tmpDiv.className = 'chiss hide';
+	tmpDiv.style = "height:"+N_LEN+"px;width:"+N_LEN+"px;top:"+(i*N_LEN)+"px;left:"+(j*N_LEN)+"px;line-height:"+N_LEN+"px";
+	tmpDiv.onclick = function(){chissClick(i,j)};
+	document.body.appendChild(tmpDiv);};
+function removeChiss(i, j){(d=dom(i, j), d.className='',d.innerHTML='')}
+function showChiss(i, j, chissidx){(d=dom(i, j),d.classList.add('chiss'),d.classList.add(chissidx<16?'black':'red'),d.innerHTML=CHISS_ARR[chissidx])}
+function choose(i, j, t){(cl=dom(i, j).classList, t ? cl.add('choosed') : cl.remove('choosed'))}
+function log(side, msg){console.info(SIDE_ARR[side], msg)};
+(function(){
+	P_WD = getWidth();
+	P_HG = getHeight();
 	N_LEN = P_WD / WD > P_HG / HG ? P_HG / HG : P_WD / WD;
-	$('body').html('');
+	document.body.innerHTML = '';
 	var skarr = [];
 	var lastSide = -1;
 	var moveableArr = [];
 	var choosed = false;
 	var ci=cj=0;
 	function isTheSideMove(side, idx){return (side + 1) % 2 === ~~(idx/16)};
-	function resetMoveableDiv(){for(var i=0;i<moveableArr.length;i++)dom(moveableArr[i][0], moveableArr[i][1]).removeClass('alert')};
+	function resetMoveableDiv(){for(var i=0;i<moveableArr.length;i++)dom(moveableArr[i][0], moveableArr[i][1]).classList.remove('alert')};
 	function checkWinner(map){
 		var redNum = blackNum = hideNum = 0;
 		for(var i=0;i<map.length;i++){
@@ -318,7 +326,7 @@ $(function(){
 			}
 			resetMoveableDiv();
 			moveableArr = findChissMoveableArr(i, j, arr);
-			if(showAlert) for(var x=0;x<moveableArr.length;x++) dom(moveableArr[x][0], moveableArr[x][1]).addClass('alert');
+			if(showAlert) for(var x=0;x<moveableArr.length;x++) dom(moveableArr[x][0], moveableArr[x][1]).classList.add('alert');
 			ci = i;
 			cj = j;
 		}
@@ -338,12 +346,8 @@ $(function(){
 			mapini(i,j);
 		}
 	}
-});
+})();
 //-->
 </script>
-</head>
 
-<body>
-让我来画一画地图
-</body>
 </html>
